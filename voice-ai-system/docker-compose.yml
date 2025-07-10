@@ -3,7 +3,8 @@ version: '3.8'
 services:
   # VAPI Voice AI Platform
   vapi:
-    image: vapi-ai/vapi:latest
+    #image: vapi-ai/vapi:latest
+    build: ./vapi
     container_name: voice-ai-vapi
     ports:
       - "3000:3000"
