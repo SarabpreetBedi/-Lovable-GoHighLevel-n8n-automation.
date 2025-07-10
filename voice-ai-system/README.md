@@ -85,7 +85,10 @@ docker-compose up -d
 
 ### n8n Workflow
 ![n8n Workflow](screenshots/n8n-workflow.png)
+
 ![n8n Workflow](screenshots/n8n-workflow2.png)
+
+### Pinecone Dashboard
 ![n8n Workflow](screenshots/pinecone_dashboard.png)
 
 ### RAG Knowledge Base
