@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lovable Landing Page Embed</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .lovable-iframe {
+            width: 100%;
+            height: 100vh;
+            border: none;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .lovable-iframe {
+                height: 100vh;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Lovable Landing Page Embed -->
+    <iframe 
+        src="https://bold-landing-pages-craft.lovable.app/" 
+        class="lovable-iframe"
+        frameborder="0" 
+        scrolling="no"
+        allow="camera; microphone; geolocation"
+        title="Lovable Landing Page">
+    </iframe>
+    
+    <script>
+        // Handle iframe communication if needed
+        window.addEventListener('message', function(event) {
+            // Handle messages from Lovable page if needed
+            if (event.origin === 'https://bold-landing-pages-craft.lovable.app') {
+                console.log('Message from Lovable:', event.data);
+            }
+        });
+        
+        // Ensure iframe loads properly
+        document.addEventListener('DOMContentLoaded', function() {
+            const iframe = document.querySelector('.lovable-iframe');
+            iframe.onload = function() {
+                console.log('Lovable page loaded successfully');
+            };
+        });
+    </script>
+</body>
+</html> 
