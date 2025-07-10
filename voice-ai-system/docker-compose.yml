@@ -1,0 +1,219 @@
+version: '3.8'
+
+services:
+  # VAPI Voice AI Platform
+  vapi:
+    image: vapi-ai/vapi:latest
+    container_name: voice-ai-vapi
+    ports:
+      - "3000:3000"
+    environment:
+      - VAPI_API_KEY=${VAPI_API_KEY}
+      - VAPI_PROJECT_ID=${VAPI_PROJECT_ID}
+      - NODE_ENV=production
+    volumes:
+      - vapi_data:/app/data
+      - ./vapi/config:/app/config
+    networks:
+      - voice-ai-network
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  # n8n Automation Platform
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: voice-ai-n8n
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD:-secure_password}
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - N8N_WEBHOOK_URL=http://localhost:5678/
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=n8n
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n/workflows:/home/node/.n8n/workflows
+    networks:
+      - voice-ai-network
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  # RAG (Retrieval-Augmented Generation) System
+  rag:
+    build:
+      context: ./rag
+      dockerfile: Dockerfile
+    container_name: voice-ai-rag
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - PINECONE_ENVIRONMENT=${PINECONE_ENVIRONMENT}
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - rag_data:/app/data
+      - ./rag/documents:/app/documents
+      - ./rag/config:/app/config
+    networks:
+      - voice-ai-network
+    depends_on:
+      - elasticsearch
+      - redis
+    restart: unless-stopped
+
+  # Memory System
+  memory:
+    build:
+      context: ./memory
+      dockerfile: Dockerfile
+    container_name: voice-ai-memory
+    ports:
+      - "8001:8001"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MEMORY_TTL=${MEMORY_TTL:-86400}
+      - MAX_MEMORY_SIZE=${MAX_MEMORY_SIZE:-1000}
+      - MEMORY_CLEANUP_INTERVAL=${MEMORY_CLEANUP_INTERVAL:-3600}
+    volumes:
+      - memory_data:/app/data
+      - ./memory/config:/app/config
+    networks:
+      - voice-ai-network
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  # PostgreSQL Database (for n8n)
+  postgres:
+    image: postgres:15
+    container_name: voice-ai-postgres
+    environment:
+      - POSTGRES_DB=n8n
+      - POSTGRES_USER=n8n
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - voice-ai-network
+    restart: unless-stopped
+
+  # Redis (for caching and memory)
+  redis:
+    image: redis:7-alpine
+    container_name: voice-ai-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - voice-ai-network
+    restart: unless-stopped
+
+  # Elasticsearch (for RAG search)
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: voice-ai-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - voice-ai-network
+    restart: unless-stopped
+
+  # Kibana (for Elasticsearch management)
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: voice-ai-kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - voice-ai-network
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: voice-ai-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    networks:
+      - voice-ai-network
+    depends_on:
+      - vapi
+      - n8n
+      - rag
+      - memory
+    restart: unless-stopped
+
+  # Monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: voice-ai-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - voice-ai-network
+    restart: unless-stopped
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: voice-ai-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - voice-ai-network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  vapi_data:
+  n8n_data:
+  rag_data:
+  memory_data:
+  postgres_data:
+  redis_data:
+  elasticsearch_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  voice-ai-network:
+    driver: bridge 

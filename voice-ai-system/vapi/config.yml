@@ -1,0 +1,182 @@
+# VAPI Configuration File
+# Voice AI Platform Settings
+
+# Assistant Configuration
+assistants:
+  - name: "Voice AI Assistant"
+    model: "gpt-4"
+    voice: "alloy"
+    webhook_url: "http://localhost:5678/webhook/voice-trigger"
+    language: "en"
+    interruption_threshold: 0.5
+    max_duration: 300
+    initial_message: "Hello! I'm your AI assistant. How can I help you today?"
+    
+  - name: "Customer Service Bot"
+    model: "gpt-4"
+    voice: "echo"
+    webhook_url: "http://localhost:5678/webhook/customer-service"
+    language: "en"
+    interruption_threshold: 0.3
+    max_duration: 600
+    initial_message: "Welcome to customer service. I'm here to help you with any questions or issues."
+
+# Voice Settings
+voice_settings:
+  default_voice: "alloy"
+  available_voices:
+    - "alloy"
+    - "echo"
+    - "fable"
+    - "onyx"
+    - "nova"
+    - "shimmer"
+  
+  language_support:
+    - "en"  # English
+    - "es"  # Spanish
+    - "fr"  # French
+    - "de"  # German
+    - "it"  # Italian
+    - "pt"  # Portuguese
+    - "ja"  # Japanese
+    - "ko"  # Korean
+    - "zh"  # Chinese
+
+# Webhook Configuration
+webhooks:
+  - name: "n8n_voice_trigger"
+    url: "http://localhost:5678/webhook/voice-trigger"
+    events:
+      - "call_started"
+      - "call_ended"
+      - "speech_started"
+      - "speech_ended"
+      - "transcript"
+      - "function_call"
+    
+  - name: "n8n_customer_service"
+    url: "http://localhost:5678/webhook/customer-service"
+    events:
+      - "call_started"
+      - "call_ended"
+      - "transcript"
+      - "function_call"
+
+# Function Calls (for RAG and Memory integration)
+function_calls:
+  - name: "query_knowledge_base"
+    description: "Query the knowledge base for relevant information"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "The search query"
+        user_id:
+          type: "string"
+          description: "User identifier"
+        context:
+          type: "string"
+          description: "Conversation context"
+      required: ["query", "user_id"]
+    
+  - name: "update_memory"
+    description: "Update user conversation memory"
+    parameters:
+      type: "object"
+      properties:
+        user_id:
+          type: "string"
+          description: "User identifier"
+        conversation_data:
+          type: "object"
+          description: "Conversation data to store"
+        preferences:
+          type: "object"
+          description: "User preferences"
+      required: ["user_id", "conversation_data"]
+
+# Call Settings
+call_settings:
+  max_duration: 600  # 10 minutes
+  recording_enabled: true
+  transcript_enabled: true
+  real_time_transcript: true
+  
+  # Interruption settings
+  interruption_threshold: 0.5
+  silence_timeout: 3.0
+  
+  # Audio settings
+  sample_rate: 16000
+  channels: 1
+  bit_rate: 16
+
+# Integration Settings
+integrations:
+  rag_api:
+    base_url: "http://localhost:8000"
+    timeout: 30
+    retry_attempts: 3
+    
+  memory_api:
+    base_url: "http://localhost:8001"
+    timeout: 10
+    retry_attempts: 2
+    
+  n8n_webhook:
+    base_url: "http://localhost:5678"
+    timeout: 15
+    retry_attempts: 2
+
+# Security Settings
+security:
+  api_key_required: true
+  webhook_signature_verification: true
+  rate_limiting:
+    enabled: true
+    max_requests_per_minute: 100
+    max_requests_per_hour: 1000
+
+# Logging Configuration
+logging:
+  level: "info"
+  format: "json"
+  output: "stdout"
+  
+  # Log retention
+  retention_days: 30
+  max_file_size: "100MB"
+  
+  # Sensitive data masking
+  mask_fields:
+    - "api_key"
+    - "phone_number"
+    - "email"
+
+# Performance Settings
+performance:
+  max_concurrent_calls: 50
+  memory_limit: "2GB"
+  cpu_limit: "4"
+  
+  # Caching
+  cache_enabled: true
+  cache_ttl: 3600  # 1 hour
+  
+  # Connection pooling
+  pool_size: 10
+  pool_timeout: 30
+
+# Monitoring
+monitoring:
+  health_check_enabled: true
+  metrics_enabled: true
+  prometheus_endpoint: "/metrics"
+  
+  # Alert thresholds
+  alerts:
+    high_error_rate: 0.05  # 5%
+    slow_response_time: 3.0  # 3 seconds
+    high_memory_usage: 0.8  # 80% 

@@ -1,0 +1,68 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "voice_ai_rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # VAPI monitoring
+  - job_name: 'vapi'
+    static_configs:
+      - targets: ['vapi:3000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # n8n monitoring
+  - job_name: 'n8n'
+    static_configs:
+      - targets: ['n8n:5678']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # RAG system monitoring
+  - job_name: 'rag'
+    static_configs:
+      - targets: ['rag:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Memory system monitoring
+  - job_name: 'memory'
+    static_configs:
+      - targets: ['memory:8001']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Redis monitoring
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Elasticsearch monitoring
+  - job_name: 'elasticsearch'
+    static_configs:
+      - targets: ['elasticsearch:9200']
+    metrics_path: '/_prometheus/metrics'
+    scrape_interval: 10s
+
+  # PostgreSQL monitoring
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Node exporter for system metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s 
