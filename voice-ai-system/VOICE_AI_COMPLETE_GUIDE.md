@@ -560,15 +560,17 @@ maxmemory-policy allkeys-lru
 
 ### Memory Management
 ![Memory System](screenshots/memory-system.png)
+
+![Memory System](screenshots/memory-system2.png)
 *Memory system dashboard showing conversation history and user preferences*
 
 ### Grafana Monitoring
 ![Grafana Dashboard](screenshots/grafana-dashboard.png)
 *Grafana dashboard with Voice AI metrics and performance data*
 
-### System Architecture
-![System Architecture](screenshots/system-architecture.png)
-*High-level system diagram showing component relationships and data flow*
+### Docker Compose Status
+![System Architecture](screenshots/docker-compose-status.png)
+*Docker Compose status showing*
 
 ---
 
