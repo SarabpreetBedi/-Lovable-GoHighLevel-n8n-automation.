@@ -97,6 +97,9 @@ docker-compose up -d
 ### Memory Management
 ![Memory System](screenshots/memory-system.png)
 
+### System Architecture
+![Memory System](screenshots/system-architecture.png)
+
 ## 🔧 Configuration
 
 ### Environment Variables
