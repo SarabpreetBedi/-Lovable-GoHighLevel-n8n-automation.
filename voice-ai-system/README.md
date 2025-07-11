@@ -48,7 +48,8 @@ voice-ai-system/
 ### Prerequisites
 - Docker and Docker Compose
 - Node.js 18+
-- Python 3.9+
+- [Rust (required for building some Python packages)](https://rustup.rs/)
+- [Python 3.11.9](https://www.python.org/downloads/release/python-3119/)
 - API Keys (VAPI, OpenAI, etc.)
 
 ### Installation
