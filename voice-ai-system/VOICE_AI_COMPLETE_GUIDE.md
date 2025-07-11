@@ -572,6 +572,10 @@ maxmemory-policy allkeys-lru
 ![System Architecture](screenshots/docker-compose-status.png)
 *Docker Compose status showing*
 
+### Start services: docker-compose up -d
+![System Architecture](screenshots/docker-compose-status.png)
+*Docker Desktop status showing*
+
 ---
 
 ## 📚 API Reference
