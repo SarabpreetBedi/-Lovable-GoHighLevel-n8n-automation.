@@ -614,8 +614,11 @@ maxmemory-policy allkeys-lru
   </tr>
 </table>
 *docker compose build rag
+
 *docker compose up -d rag
+
 *docker restart $(docker ps -q)
+
 *docker ps
 
 *Cursor Linux status showing*
