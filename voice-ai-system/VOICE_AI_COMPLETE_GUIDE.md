@@ -567,6 +567,7 @@ maxmemory-policy allkeys-lru
   <tr>
     <td><img src="screenshots/rag-interface.png" alt="rag interface" width="400"/></td>
     <td><img src="screenshots/rag-interface2.png" alt="rag interface2" width="400"/></td>
+    <td><img src="screenshots/rag-interface3.png" alt="rag interface3" width="400"/></td>
   </tr>
 </table>
 *RAG system interface showing document ingestion and query results*
