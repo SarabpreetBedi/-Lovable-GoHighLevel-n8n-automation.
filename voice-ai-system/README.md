@@ -83,12 +83,14 @@ docker-compose up -d
 
 ### VAPI Dashboard
 ![VAPI Dashboard](screenshots/vapi-dashboard.png)
+<table>
+  <tr>
+    <td><img src="screenshots/vapi-dashboard.png" alt="/vapi-dashboard 1" width="400"/></td>
+    <td><img src="screenshots/vapi-dashboard2.png" alt="/vapi-dashboard 2" width="400"/></td>
+  </tr>
+</table>
 
 ### n8n Workflow
-![n8n Workflow](screenshots/n8n-workflow.png)
-
-![n8n Workflow](screenshots/n8n-workflow2.png)
-
 <table>
   <tr>
     <td><img src="screenshots/n8n-workflow.png" alt="n8n Workflow 1" width="400"/></td>
@@ -97,16 +99,38 @@ docker-compose up -d
 </table>
 
 ### Pinecone Dashboard
-![n8n Workflow](screenshots/pinecone_dashboard.png)
+<table>
+  <tr>
+    <td><img src="screenshots/pinecone_dashboard.png" alt="pinecone dashboard" width="400"/></td>
+  </tr>
+</table>
 
 ### RAG Knowledge Base
 ![RAG Interface](screenshots/rag-interface.png)
 
 ### Memory Management
-![Memory System](screenshots/memory-system.png)
+<table>
+  <tr>
+    <td><img src="screenshots/memory-system.png" alt="memory system" width="400"/></td>
+    <td><img src="screenshots/memory-system2.png" alt="memory system2" width="400"/></td>
+  </tr>
+</table>
+
+### Elastic Management
+<table>
+  <tr>
+    <td><img src="screenshots/memory-system.png" alt="memory system" width="400"/></td>
+    <td><img src="screenshots/memory-system2.png" alt="memory system2" width="400"/></td>
+  </tr>
+</table>
 
 ### System Architecture
-![Memory System](screenshots/system-architecture.png)
+<table>
+  <tr>
+    <td><img src="screenshots/system-architecture.png" alt="system architecture" width="400"/></td>
+  </tr>
+</table>
+
 
 ## 🔧 Configuration
 
