@@ -104,7 +104,12 @@ docker-compose up -d
 </table>
 
 ### RAG Knowledge Base
-![RAG Interface](screenshots/rag-interface.png)
+<table>
+  <tr>
+    <td><img src="screenshots/rag-interface.png" alt="rag interface" width="400"/></td>
+    <td><img src="screenshots/rag-interface2.png" alt="rag interface2" width="400"/></td>
+  </tr>
+</table>
 
 ### Memory Management
 <table>
