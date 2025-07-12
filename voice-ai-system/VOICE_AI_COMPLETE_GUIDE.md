@@ -583,6 +583,7 @@ maxmemory-policy allkeys-lru
     <td><img src="screenshots/grafana-dashboard3.png" alt="grafana dashboard3" width="400"/></td>
   </tr>
 </table>
+*Run: docker exec -it voice-ai-grafana grafana-cli admin reset-admin-password admin*
 *Grafana dashboard with Voice AI metrics and performance data*
 
 ### Docker Compose Status
