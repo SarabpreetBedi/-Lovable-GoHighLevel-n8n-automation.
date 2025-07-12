@@ -563,7 +563,12 @@ maxmemory-policy allkeys-lru
 *Complex n8n workflow orchestrating voice, RAG, and memory systems*
 
 ### RAG Knowledge Base
-![RAG Interface](screenshots/rag-interface.png)
+<table>
+  <tr>
+    <td><img src="screenshots/rag-interface.png" alt="rag interface" width="400"/></td>
+    <td><img src="screenshots/rag-interface2.png" alt="rag interface2" width="400"/></td>
+  </tr>
+</table>
 *RAG system interface showing document ingestion and query results*
 
 ### Memory Management
