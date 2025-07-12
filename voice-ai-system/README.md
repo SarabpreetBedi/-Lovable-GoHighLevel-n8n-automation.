@@ -82,7 +82,6 @@ docker-compose up -d
 ## 📸 Screenshots
 
 ### VAPI Dashboard
-![VAPI Dashboard](screenshots/vapi-dashboard.png)
 <table>
   <tr>
     <td><img src="screenshots/vapi-dashboard.png" alt="/vapi-dashboard 1" width="400"/></td>
@@ -119,8 +118,8 @@ docker-compose up -d
 ### Elastic Management
 <table>
   <tr>
-    <td><img src="screenshots/memory-system.png" alt="memory system" width="400"/></td>
-    <td><img src="screenshots/memory-system2.png" alt="memory system2" width="400"/></td>
+    <td><img src="screenshots/elastic-dashboard.png" alt="memory system" width="400"/></td>
+    <td><img src="screenshots/elastic-dashboard2.png" alt="memory system2" width="400"/></td>
   </tr>
 </table>
 
