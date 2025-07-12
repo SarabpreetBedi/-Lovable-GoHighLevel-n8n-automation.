@@ -602,6 +602,7 @@ maxmemory-policy allkeys-lru
 </table>
 *Ubuntu Linux status showing*
 *Cursor Linux status showing*
+
 ---
 
 ## 📚 API Reference
