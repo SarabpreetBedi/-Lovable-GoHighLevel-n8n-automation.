@@ -84,7 +84,6 @@ docker-compose up -d
 ### VAPI Dashboard
 <table>
   <tr>
-    <td><img src="screenshots/vapi-dashboard.png" alt="/vapi-dashboard 1" width="400"/></td>
     <td><img src="screenshots/vapi-dashboard2.png" alt="/vapi-dashboard 2" width="400"/></td>
   </tr>
 </table>
@@ -114,7 +113,6 @@ docker-compose up -d
 <table>
   <tr>
     <td><img src="screenshots/memory-system.png" alt="memory system" width="400"/></td>
-    <td><img src="screenshots/memory-system2.png" alt="memory system2" width="400"/></td>
   </tr>
 </table>
 
@@ -122,7 +120,6 @@ docker-compose up -d
 <table>
   <tr>
     <td><img src="screenshots/elastic-dashboard.png" alt="memory system" width="400"/></td>
-    <td><img src="screenshots/elastic-dashboard2.png" alt="memory system2" width="400"/></td>
   </tr>
 </table>
 
