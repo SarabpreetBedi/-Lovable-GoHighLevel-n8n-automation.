@@ -89,6 +89,13 @@ docker-compose up -d
 
 ![n8n Workflow](screenshots/n8n-workflow2.png)
 
+<table>
+  <tr>
+    <td><img src="screenshots/n8n-workflow.png" alt="n8n Workflow 1" width="400"/></td>
+    <td><img src="screenshots/n8n-workflow2.png" alt="n8n Workflow 2" width="400"/></td>
+  </tr>
+</table>
+
 ### Pinecone Dashboard
 ![n8n Workflow](screenshots/pinecone_dashboard.png)
 
