@@ -547,11 +547,19 @@ maxmemory-policy allkeys-lru
 ## 📸 Screenshots
 
 ### VAPI Dashboard
-![VAPI Dashboard](screenshots/vapi-dashboard.png)
+<table>
+  <tr>
+    <td><img src="screenshots/vapi-dashboard.png" alt="vapi dashboard" width="400"/></td>
+  </tr>
+</table>
 *VAPI dashboard showing active calls, assistant configuration, and call analytics*
 
 ### n8n Workflow
-![n8n Workflow](screenshots/n8n-workflow.png)
+<table>
+  <tr>
+    <td><img src="screenshots/n8n-workflow.png" alt=" n8n workflow" width="400"/></td>
+  </tr>
+</table>
 *Complex n8n workflow orchestrating voice, RAG, and memory systems*
 
 ### RAG Knowledge Base
@@ -559,21 +567,39 @@ maxmemory-policy allkeys-lru
 *RAG system interface showing document ingestion and query results*
 
 ### Memory Management
-![Memory System](screenshots/memory-system.png)
-
-![Memory System](screenshots/memory-system2.png)
+<table>
+  <tr>
+    <td><img src="screenshots/memory-system.png" alt="memory system" width="400"/></td>
+    <td><img src="screenshots/memory-system2.png" alt="memory system 2" width="400"/></td>
+  </tr>
+</table>
 *Memory system dashboard showing conversation history and user preferences*
 
 ### Grafana Monitoring
-![Grafana Dashboard](screenshots/grafana-dashboard.png)
+<table>
+  <tr>
+    <td><img src="screenshots/grafana-dashboard.png" alt="grafana dashboard" width="400"/></td>
+    <td><img src="screenshots/grafana-dashboard2.png" alt="grafana dashboard2" width="400"/></td>
+    <td><img src="screenshots/grafana-dashboard3.png" alt="grafana dashboard3" width="400"/></td>
+  </tr>
+</table>
 *Grafana dashboard with Voice AI metrics and performance data*
 
 ### Docker Compose Status
-![System Architecture](screenshots/docker-compose-status.png)
+<table>
+  <tr>
+    <td><img src="screenshots/docker-compose-status.png" alt="docker compose status" width="400"/></td>
+  </tr>
+</table>
 *Docker Compose status showing*
 
 ### Start services: docker-compose up -d
-![System Architecture](screenshots/docker-compose-status2.png)
+<table>
+  <tr>
+    <td><img src="screenshots/docker-compose-status2.png" alt="docker compose status2" width="400"/></td>
+     <td><img src="screenshots/docker-compose-status3.png" alt="docker compose status3" width="400"/></td>
+  </tr>
+</table>
 *Ubuntu Linux status showing*
 
 ---
