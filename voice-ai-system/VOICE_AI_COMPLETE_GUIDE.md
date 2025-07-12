@@ -605,6 +605,22 @@ maxmemory-policy allkeys-lru
 *Ubuntu Linux status showing*
 *Cursor Linux status showing*
 
+### Start docker services: Cursor IDE
+<table>
+  <tr>
+    <td><img src="screenshots/Cursor_docker.png" alt=" Cursor docker status1" width="400"/></td>
+     <td><img src="screenshots/Cursor_docker2.png" alt="Cursor docker status2" width="400"/></td>
+     <td><img src="screenshots/Cursor_docker3.png" alt="Cursor docker  status3" width="400"/></td>
+  </tr>
+</table>
+*docker compose build rag
+*docker compose up -d rag
+*docker restart $(docker ps -q)
+*docker ps
+
+*Cursor Linux status showing*
+
+
 ---
 
 ## 📚 API Reference
