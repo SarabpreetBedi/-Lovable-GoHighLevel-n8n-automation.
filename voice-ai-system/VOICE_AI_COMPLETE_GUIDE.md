@@ -570,7 +570,7 @@ maxmemory-policy allkeys-lru
 <table>
   <tr>
     <td><img src="screenshots/memory-system.png" alt="memory system" width="400"/></td>
-    <td><img src="screenshots/memory-system2.png" alt="memory system 2" width="400"/></td>
+    <td><img src="screenshots/memory-system3.png" alt="memory system 3" width="400"/></td>
   </tr>
 </table>
 *Memory system dashboard showing conversation history and user preferences*
@@ -601,7 +601,7 @@ maxmemory-policy allkeys-lru
   </tr>
 </table>
 *Ubuntu Linux status showing*
-
+*Cursor Linux status showing*
 ---
 
 ## 📚 API Reference
