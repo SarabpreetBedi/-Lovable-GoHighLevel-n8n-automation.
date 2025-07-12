@@ -129,6 +129,13 @@ docker-compose up -d
   </tr>
 </table>
 
+### Voice AI System Architecture
+<table>
+  <tr>
+    <td><img src="screenshots/voice_ai_system_diagram.png" alt="voice ai system" width="400"/></td>
+  </tr>
+</table>
+
 
 ## 🔧 Configuration
 
