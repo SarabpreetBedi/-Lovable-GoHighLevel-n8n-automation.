@@ -1,25 +1,29 @@
-# VAPI Configuration File
-# Voice AI Platform Settings
+# VAPI Professional Configuration File
+# Voice AI Platform Settings with Advanced Features
 
 # Assistant Configuration
 assistants:
-  - name: "Voice AI Assistant"
+  - name: "Voice AI Professional Assistant"
     model: "gpt-4"
     voice: "alloy"
     webhook_url: "http://localhost:5678/webhook/voice-trigger"
     language: "en"
     interruption_threshold: 0.5
     max_duration: 300
-    initial_message: "Hello! I'm your AI assistant. How can I help you today?"
+    initial_message: "Hello! I'm your professional AI assistant. How can I help you today?"
+    sentiment_analysis: true
+    timezone_aware: true
     
-  - name: "Customer Service Bot"
+  - name: "Customer Service Professional Bot"
     model: "gpt-4"
     voice: "echo"
     webhook_url: "http://localhost:5678/webhook/customer-service"
     language: "en"
     interruption_threshold: 0.3
     max_duration: 600
-    initial_message: "Welcome to customer service. I'm here to help you with any questions or issues."
+    initial_message: "Welcome to professional customer service. I'm here to help you with any questions or issues."
+    sentiment_analysis: true
+    timezone_aware: true
 
 # Voice Settings
 voice_settings:
@@ -54,6 +58,8 @@ webhooks:
       - "speech_ended"
       - "transcript"
       - "function_call"
+      - "sentiment_analysis"
+      - "timezone_detection"
     
   - name: "n8n_customer_service"
     url: "http://localhost:5678/webhook/customer-service"
@@ -62,6 +68,14 @@ webhooks:
       - "call_ended"
       - "transcript"
       - "function_call"
+      - "sentiment_analysis"
+    
+  - name: "n8n_email_callback"
+    url: "http://localhost:5678/webhook/email-callback"
+    events:
+      - "call_ended"
+      - "followup_triggered"
+      - "email_sent"
 
 # Function Calls (for RAG and Memory integration)
 function_calls:
@@ -79,6 +93,9 @@ function_calls:
         context:
           type: "string"
           description: "Conversation context"
+        sentiment:
+          type: "string"
+          description: "User sentiment analysis"
       required: ["query", "user_id"]
     
   - name: "update_memory"
@@ -95,7 +112,51 @@ function_calls:
         preferences:
           type: "object"
           description: "User preferences"
+        timezone:
+          type: "string"
+          description: "User timezone"
       required: ["user_id", "conversation_data"]
+    
+  - name: "schedule_callback"
+    description: "Schedule a follow-up callback"
+    parameters:
+      type: "object"
+      properties:
+        user_id:
+          type: "string"
+          description: "User identifier"
+        callback_type:
+          type: "string"
+          description: "Type of callback (email, sms, call)"
+        scheduled_time:
+          type: "string"
+          description: "When to schedule the callback"
+        timezone:
+          type: "string"
+          description: "User timezone"
+        message:
+          type: "string"
+          description: "Callback message"
+      required: ["user_id", "callback_type", "scheduled_time", "timezone"]
+    
+  - name: "send_email"
+    description: "Send a follow-up email"
+    parameters:
+      type: "object"
+      properties:
+        to:
+          type: "string"
+          description: "Recipient email"
+        subject:
+          type: "string"
+          description: "Email subject"
+        body:
+          type: "string"
+          description: "Email body"
+        template_id:
+          type: "string"
+          description: "Email template to use"
+      required: ["to", "subject", "body"]
 
 # Call Settings
 call_settings:
@@ -103,6 +164,8 @@ call_settings:
   recording_enabled: true
   transcript_enabled: true
   real_time_transcript: true
+  sentiment_analysis: true
+  timezone_detection: true
   
   # Interruption settings
   interruption_threshold: 0.5
@@ -112,11 +175,16 @@ call_settings:
   sample_rate: 16000
   channels: 1
   bit_rate: 16
+  
+  # Professional features
+  call_summary: true
+  followup_scheduling: true
+  email_integration: true
 
 # Integration Settings
 integrations:
   rag_api:
-    base_url: "http://localhost:8000"
+    base_url: "http://localhost:8080"
     timeout: 30
     retry_attempts: 3
     
@@ -129,6 +197,25 @@ integrations:
     base_url: "http://localhost:5678"
     timeout: 15
     retry_attempts: 2
+    
+  email_service:
+    smtp_host: "smtp.gmail.com"
+    smtp_port: 587
+    username: "${EMAIL_USERNAME}"
+    password: "${EMAIL_PASSWORD}"
+    use_tls: true
+    
+  timezone_service:
+    default_timezone: "America/New_York"
+    supported_timezones:
+      - "America/New_York"
+      - "America/Chicago"
+      - "America/Denver"
+      - "America/Los_Angeles"
+      - "Europe/London"
+      - "Europe/Paris"
+      - "Asia/Tokyo"
+      - "Australia/Sydney"
 
 # Security Settings
 security:
@@ -138,6 +225,11 @@ security:
     enabled: true
     max_requests_per_minute: 100
     max_requests_per_hour: 1000
+  
+  # Professional security features
+  ssl_required: true
+  encryption_at_rest: true
+  audit_logging: true
 
 # Logging Configuration
 logging:
@@ -154,6 +246,13 @@ logging:
     - "api_key"
     - "phone_number"
     - "email"
+    - "password"
+    - "credit_card"
+  
+  # Professional logging
+  audit_log: true
+  performance_log: true
+  error_tracking: true
 
 # Performance Settings
 performance:
@@ -168,6 +267,11 @@ performance:
   # Connection pooling
   pool_size: 10
   pool_timeout: 30
+  
+  # Professional performance
+  load_balancing: true
+  auto_scaling: true
+  health_checks: true
 
 # Monitoring
 monitoring:
@@ -179,4 +283,50 @@ monitoring:
   alerts:
     high_error_rate: 0.05  # 5%
     slow_response_time: 3.0  # 3 seconds
-    high_memory_usage: 0.8  # 80% 
+    high_memory_usage: 0.8  # 80%
+    low_call_quality: 0.7  # 70%
+  
+  # Professional monitoring
+  real_time_dashboard: true
+  custom_metrics: true
+  alert_notifications: true
+
+# Professional Features
+professional_features:
+  # Email Integration
+  email_templates:
+    - id: "call_summary"
+      subject: "Your Call Summary"
+      body: "Thank you for your call. Here's your summary: {{summary}}"
+    - id: "followup"
+      subject: "Follow-up from your call"
+      body: "We'd like to follow up on your recent call: {{details}}"
+    - id: "appointment"
+      subject: "Appointment Confirmation"
+      body: "Your appointment has been confirmed for {{datetime}}"
+  
+  # Callback System
+  callback_types:
+    - "email"
+    - "sms"
+    - "call"
+    - "calendar_invite"
+  
+  # Timezone Features
+  timezone_detection:
+    enabled: true
+    auto_adjust: true
+    user_preference: true
+  
+  # Sentiment Analysis
+  sentiment_analysis:
+    enabled: true
+    real_time: true
+    escalation_threshold: 0.3
+  
+  # Call Quality
+  call_quality:
+    monitoring: true
+    recording: true
+    transcription: true
+    sentiment_tracking: true 
