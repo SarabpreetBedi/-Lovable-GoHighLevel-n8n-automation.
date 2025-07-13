@@ -1,5 +1,5 @@
 {
-  "name": "Voice AI Professional System - Complete",
+  "name": "Voice AI Professional System - Complete with Lovable",
   "active": true,
   "nodes": [
     {
@@ -43,6 +43,34 @@
       "typeVersion": 1,
       "position": [240, 700],
       "webhookId": "callback-trigger"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lovable-embed",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "lovable-embed-webhook",
+      "name": "Lovable Embed Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 900],
+      "webhookId": "lovable-embed"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lovable-form",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "lovable-form-webhook",
+      "name": "Lovable Form Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 1100],
+      "webhookId": "lovable-form"
     },
     {
       "parameters": {
@@ -154,6 +182,100 @@
     },
     {
       "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "user-id",
+              "name": "user_id",
+              "value": "={{$json.user_id}}",
+              "type": "string"
+            },
+            {
+              "id": "email",
+              "name": "email",
+              "value": "={{$json.email}}",
+              "type": "string"
+            },
+            {
+              "id": "name",
+              "name": "name",
+              "value": "={{$json.name}}",
+              "type": "string"
+            },
+            {
+              "id": "message",
+              "name": "message",
+              "value": "={{$json.message}}",
+              "type": "string"
+            },
+            {
+              "id": "source",
+              "name": "source",
+              "value": "Lovable Embed",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "extract-lovable-embed-data",
+      "name": "Extract Lovable Embed Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 900]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "user-id",
+              "name": "user_id",
+              "value": "={{$json.user_id}}",
+              "type": "string"
+            },
+            {
+              "id": "email",
+              "name": "email",
+              "value": "={{$json.email}}",
+              "type": "string"
+            },
+            {
+              "id": "name",
+              "name": "name",
+              "value": "={{$json.name}}",
+              "type": "string"
+            },
+            {
+              "id": "phone",
+              "name": "phone",
+              "value": "={{$json.phone}}",
+              "type": "string"
+            },
+            {
+              "id": "form-data",
+              "name": "form_data",
+              "value": "={{$json.form_data}}",
+              "type": "object"
+            },
+            {
+              "id": "source",
+              "name": "source",
+              "value": "Lovable Form",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "extract-lovable-form-data",
+      "name": "Extract Lovable Form Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 1100]
+    },
+    {
+      "parameters": {
         "method": "GET",
         "url": "http://localhost:8001/memory/{{$json.user_id}}",
         "options": {}
@@ -213,6 +335,84 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [680, 700]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.gohighlevel.com/v1/contacts/",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "firstName",
+              "value": "={{$json.name}}"
+            },
+            {
+              "name": "email",
+              "value": "={{$json.email}}"
+            },
+            {
+              "name": "source",
+              "value": "={{$json.source}}"
+            },
+            {
+              "name": "tags",
+              "value": "Lovable, Website Lead"
+            },
+            {
+              "name": "customField",
+              "value": "={{$json.message}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "create-ghl-lovable-embed",
+      "name": "Create GHL Lovable Embed",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 900]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.gohighlevel.com/v1/contacts/",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "firstName",
+              "value": "={{$json.name}}"
+            },
+            {
+              "name": "email",
+              "value": "={{$json.email}}"
+            },
+            {
+              "name": "phone",
+              "value": "={{$json.phone}}"
+            },
+            {
+              "name": "source",
+              "value": "={{$json.source}}"
+            },
+            {
+              "name": "tags",
+              "value": "Lovable, Form Submission"
+            },
+            {
+              "name": "customField",
+              "value": "={{$json.form_data}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "create-ghl-lovable-form",
+      "name": "Create GHL Lovable Form",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 1100]
     },
     {
       "parameters": {
@@ -357,7 +557,7 @@
       "name": "Create Call Summary",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [680, 900]
+      "position": [680, 1300]
     },
     {
       "parameters": {
@@ -390,7 +590,7 @@
       "name": "Create GHL Contact",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [900, 900]
+      "position": [900, 1300]
     },
     {
       "parameters": {
@@ -410,7 +610,7 @@
       "name": "Prepare Email Data",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [1120, 900]
+      "position": [1120, 1300]
     },
     {
       "parameters": {
@@ -424,7 +624,7 @@
       "name": "Send Follow-up Email",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 1,
-      "position": [1340, 900]
+      "position": [1340, 1300]
     },
     {
       "parameters": {
@@ -444,7 +644,47 @@
       "name": "Log Processing",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [1560, 900]
+      "position": [1560, 1300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "lovable-embed-log",
+              "name": "lovable_embed_log",
+              "value": "={{{\"timestamp\": $now, \"user_id\": $json.user_id, \"email\": $json.email, \"name\": $json.name, \"source\": $json.source, \"status\": 'processed'}}}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "log-lovable-embed",
+      "name": "Log Lovable Embed",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [900, 900]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "lovable-form-log",
+              "name": "lovable_form_log",
+              "value": "={{{\"timestamp\": $now, \"user_id\": $json.user_id, \"email\": $json.email, \"name\": $json.name, \"phone\": $json.phone, \"source\": $json.source, \"status\": 'processed'}}}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "log-lovable-form",
+      "name": "Log Lovable Form",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [900, 1100]
     }
   ],
   "connections": {
@@ -481,6 +721,28 @@
         ]
       ]
     },
+    "Lovable Embed Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Lovable Embed Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lovable Form Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Lovable Form Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Extract Voice Data": {
       "main": [
         [
@@ -508,6 +770,28 @@
         [
           {
             "node": "Schedule Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Lovable Embed Data": {
+      "main": [
+        [
+          {
+            "node": "Create GHL Lovable Embed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Lovable Form Data": {
+      "main": [
+        [
+          {
+            "node": "Create GHL Lovable Form",
             "type": "main",
             "index": 0
           }
@@ -634,6 +918,28 @@
           }
         ]
       ]
+    },
+    "Create GHL Lovable Embed": {
+      "main": [
+        [
+          {
+            "node": "Log Lovable Embed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create GHL Lovable Form": {
+      "main": [
+        [
+          {
+            "node": "Log Lovable Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "pinData": {},
@@ -642,7 +948,7 @@
   },
   "staticData": null,
   "tags": [],
-  "triggerCount": 3,
+  "triggerCount": 5,
   "updatedAt": "2025-01-09T09:00:00.000Z",
   "versionId": "1"
 } 
