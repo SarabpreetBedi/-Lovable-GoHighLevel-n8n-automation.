@@ -149,6 +149,7 @@ docker-compose up -d
 <table>
   <tr>
     <td><img src="screenshots/n8n_voice_ai_workflows.png" alt="n8n voice_ai_workflows" width="600"/></td>
+    <td><img src="screenshots/n8n_workflow_diagram.png" alt="n8n workflow diagram" width="600"/></td>
   </tr>
 </table>
 
