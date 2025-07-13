@@ -558,6 +558,8 @@ maxmemory-policy allkeys-lru
 <table>
   <tr>
     <td><img src="screenshots/n8n-workflow.png" alt=" n8n workflow" width="400"/></td>
+    <td><img src="screenshots/n8n-workflow2.png" alt=" n8n workflow2" width="400"/></td>
+    <td><img src="screenshots/n8n-workflow3.png" alt=" n8n workflow3" width="400"/></td>
   </tr>
 </table>
 *Complex n8n workflow orchestrating voice, RAG, and memory systems*
