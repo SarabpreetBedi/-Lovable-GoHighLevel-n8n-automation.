@@ -141,6 +141,7 @@ docker-compose up -d
 <table>
   <tr>
     <td><img src="screenshots/voice_ai_system_diagram2.png" alt="voice ai system2" width="600"/></td>
+    <td><img src="screenshots/voice_ai_professional_architecture.png" alt="voice_ai_professional_architecture" width="600"/></td>
   </tr>
 </table>
 
