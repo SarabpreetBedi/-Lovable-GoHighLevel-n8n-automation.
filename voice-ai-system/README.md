@@ -140,7 +140,7 @@ docker-compose up -d
 ### LovableEmbed GoHighLevel Voice AI System Architecture
 <table>
   <tr>
-    <td><img src="screenshots/voice_ai_system_diagram2.png" alt="voice ai system2" width="400"/></td>
+    <td><img src="screenshots/voice_ai_system_diagram2.png" alt="voice ai system2" width="600"/></td>
   </tr>
 </table>
 
