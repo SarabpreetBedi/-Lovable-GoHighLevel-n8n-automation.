@@ -145,6 +145,14 @@ docker-compose up -d
   </tr>
 </table>
 
+### n8n Voice AI System Architecture
+<table>
+  <tr>
+    <td><img src="screenshots/n8n_voice_ai_workflows.png" alt="n8n voice_ai_workflows" width="600"/></td>
+  </tr>
+</table>
+
+
 
 ## 🔧 Configuration
 
