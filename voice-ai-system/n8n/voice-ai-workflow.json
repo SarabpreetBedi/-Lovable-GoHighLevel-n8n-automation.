@@ -1,5 +1,5 @@
 {
-  "name": "Voice AI Complete Workflow",
+  "name": "Voice AI Professional Workflow",
   "nodes": [
     {
       "parameters": {
@@ -28,6 +28,20 @@
       "typeVersion": 1,
       "position": [240, 500],
       "webhookId": "customer-service"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "email-callback",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "email-callback-webhook",
+      "name": "Email Callback Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 700],
+      "webhookId": "email-callback"
     },
     {
       "parameters": {
@@ -89,6 +103,35 @@
     },
     {
       "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "event-type",
+              "leftValue": "={{$json.event}}",
+              "rightValue": "call_ended",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "call-ended-filter",
+      "name": "Call Ended Filter",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 700]
+    },
+    {
+      "parameters": {
         "assignments": {
           "assignments": [
             {
@@ -119,6 +162,12 @@
               "id": "timestamp",
               "name": "timestamp",
               "value": "={{$now}}",
+              "type": "string"
+            },
+            {
+              "id": "timezone",
+              "name": "timezone",
+              "value": "={{$json.timezone || 'America/New_York'}}",
               "type": "string"
             }
           ]
@@ -158,6 +207,12 @@
               "name": "speaker",
               "value": "={{$json.speaker}}",
               "type": "string"
+            },
+            {
+              "id": "sentiment",
+              "name": "sentiment",
+              "value": "={{$json.sentiment || 'neutral'}}",
+              "type": "string"
             }
           ]
         },
@@ -186,7 +241,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://localhost:8000/rag/query",
+        "url": "http://localhost:8080/rag/query",
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
@@ -201,6 +256,10 @@
             {
               "name": "context",
               "value": "={{$json.memory?.conversation_history || []}}"
+            },
+            {
+              "name": "sentiment",
+              "value": "={{$json.sentiment}}"
             }
           ]
         },
@@ -221,7 +280,7 @@
             {
               "id": "conversation-entry",
               "name": "conversation_entry",
-              "value": "={{{\"role\": \"user\", \"content\": $json.transcript, \"timestamp\": $now, \"confidence\": $json.confidence}}}",
+              "value": "={{{\"role\": \"user\", \"content\": $json.transcript, \"timestamp\": $now, \"confidence\": $json.confidence, \"sentiment\": $json.sentiment}}}",
               "type": "object"
             },
             {
@@ -284,7 +343,7 @@
             {
               "id": "assistant-response",
               "name": "assistant_response",
-              "value": "={{{\"role\": \"assistant\", \"content\": $json.rag_response?.answer || \"I'm sorry, I don't have information about that.\", \"timestamp\": $now, \"source\": \"RAG\"}}}",
+              "value": "={{{\"role\": \"assistant\", \"content\": $json.rag_response?.answer || \"I'm sorry, I don't have information about that.\", \"timestamp\": $now, \"source\": \"RAG\", \"confidence\": 0.9}}}",
               "type": "object"
             }
           ]
@@ -361,35 +420,6 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict"
-          },
-          "conditions": [
-            {
-              "id": "event-type",
-              "leftValue": "={{$json.event}}",
-              "rightValue": "call_ended",
-              "operator": {
-                "type": "string",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "call-ended-filter",
-      "name": "Call Ended Filter",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
-      "position": [460, 700]
-    },
-    {
-      "parameters": {
         "method": "POST",
         "url": "http://localhost:8001/memory/{{$json.user_id}}/summary",
         "sendBody": true,
@@ -397,7 +427,7 @@
           "parameters": [
             {
               "name": "call_summary",
-              "value": "={{{\"call_id\": $json.call_id, \"duration\": $json.duration, \"outcome\": $json.outcome, \"timestamp\": $now}}}"
+              "value": "={{{\"call_id\": $json.call_id, \"duration\": $json.duration, \"outcome\": $json.outcome, \"timestamp\": $now, \"sentiment\": $json.sentiment}}}"
             }
           ]
         },
@@ -409,7 +439,7 @@
       "name": "Create Call Summary",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [680, 700]
+      "position": [680, 900]
     },
     {
       "parameters": {
@@ -448,7 +478,79 @@
       "name": "Create GHL Contact",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [900, 700]
+      "position": [900, 900]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "email-data",
+              "name": "email_data",
+              "value": "={{{\"to\": $json.user_email || $json.phone_number + \"@sms.email\", \"subject\": \"Voice AI Call Summary\", \"body\": \"Thank you for your call. Here's your summary: \" + $json.call_summary, \"timezone\": $json.timezone}}}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "prepare-email-data",
+      "name": "Prepare Email Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1120, 900]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{$env.EMAIL_USERNAME}}",
+        "toEmail": "={{$json.email_data.to}}",
+        "subject": "={{$json.email_data.subject}}",
+        "text": "={{$json.email_data.body}}",
+        "options": {}
+      },
+      "id": "send-followup-email",
+      "name": "Send Follow-up Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [1340, 900]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "schedule-data",
+              "name": "schedule_data",
+              "value": "={{{\"user_id\": $json.user_id, \"timezone\": $json.timezone, \"callback_time\": $now, \"followup_type\": \"24h\"}}}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "prepare-schedule-data",
+      "name": "Prepare Schedule Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1560, 900]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "schedule-followup",
+      "name": "Schedule Follow-up",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [1780, 900]
     },
     {
       "parameters": {
@@ -457,7 +559,7 @@
             {
               "id": "log-entry",
               "name": "log_entry",
-              "value": "={{{\"timestamp\": $now, \"event\": $json.event_type, \"user_id\": $json.user_id, \"call_id\": $json.call_id, \"status\": \"processed\"}}}",
+              "value": "={{{\"timestamp\": $now, \"event\": $json.event_type, \"user_id\": $json.user_id, \"call_id\": $json.call_id, \"status\": \"processed\", \"email_sent\": true, \"followup_scheduled\": true}}}",
               "type": "object"
             }
           ]
@@ -468,7 +570,7 @@
       "name": "Log Processing",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [1120, 700]
+      "position": [2000, 900]
     }
   ],
   "connections": {
@@ -494,6 +596,17 @@
         ]
       ]
     },
+    "Email Callback Webhook": {
+      "main": [
+        [
+          {
+            "node": "Call Ended Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Call Started Filter": {
       "main": [
         [
@@ -510,6 +623,17 @@
         [
           {
             "node": "Extract Transcript Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Ended Filter": {
+      "main": [
+        [
+          {
+            "node": "Create Call Summary",
             "type": "main",
             "index": 0
           }
@@ -593,17 +717,6 @@
         ]
       ]
     },
-    "Call Ended Filter": {
-      "main": [
-        [
-          {
-            "node": "Create Call Summary",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Create Call Summary": {
       "main": [
         [
@@ -616,6 +729,50 @@
       ]
     },
     "Create GHL Contact": {
+      "main": [
+        [
+          {
+            "node": "Prepare Email Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Email Data": {
+      "main": [
+        [
+          {
+            "node": "Send Follow-up Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Follow-up Email": {
+      "main": [
+        [
+          {
+            "node": "Prepare Schedule Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Schedule Data": {
+      "main": [
+        [
+          {
+            "node": "Schedule Follow-up",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Follow-up": {
       "main": [
         [
           {
@@ -637,10 +794,10 @@
       "createdAt": "2025-01-09T09:00:00.000Z",
       "updatedAt": "2025-01-09T09:00:00.000Z",
       "id": "voice-ai-workflow",
-      "name": "Voice AI"
+      "name": "Voice AI Professional"
     }
   ],
   "triggerCount": 1,
   "updatedAt": "2025-01-09T09:00:00.000Z",
-  "versionId": "1"
+  "versionId": "2"
 } 
