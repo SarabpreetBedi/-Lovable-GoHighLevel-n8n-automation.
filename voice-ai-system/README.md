@@ -92,6 +92,8 @@ docker-compose up -d
 <table>
   <tr>
     <td><img src="screenshots/n8n-workflow.png" alt="n8n Workflow 1" width="400"/></td>
+    <td><img src="screenshots/n8n-workflow2.png" alt="n8n Workflow 2" width="400"/></td>
+    <td><img src="screenshots/n8n-workflow3.png" alt="n8n Workflow 3" width="400"/></td>
   </tr>
 </table>
 
