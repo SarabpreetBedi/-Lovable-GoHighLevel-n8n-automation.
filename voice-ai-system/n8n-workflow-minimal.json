@@ -1,0 +1,648 @@
+{
+  "name": "Voice AI Professional System - Complete",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "voice-trigger",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "voice-webhook",
+      "name": "Voice Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "voice-trigger"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "timezone-handler",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "timezone-webhook",
+      "name": "Timezone Handler",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 500],
+      "webhookId": "timezone-handler"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "callback-trigger",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "callback-webhook",
+      "name": "Callback Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 700],
+      "webhookId": "callback-trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "user-id",
+              "name": "user_id",
+              "value": "={{$json.user_id}}",
+              "type": "string"
+            },
+            {
+              "id": "call-id",
+              "name": "call_id",
+              "value": "={{$json.call_id}}",
+              "type": "string"
+            },
+            {
+              "id": "phone-number",
+              "name": "phone_number",
+              "value": "={{$json.phone_number}}",
+              "type": "string"
+            },
+            {
+              "id": "transcript",
+              "name": "transcript",
+              "value": "={{$json.transcript}}",
+              "type": "string"
+            },
+            {
+              "id": "timezone",
+              "name": "timezone",
+              "value": "={{$json.timezone || 'America/New_York'}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "extract-voice-data",
+      "name": "Extract Voice Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "user-id",
+              "name": "user_id",
+              "value": "={{$json.user_id}}",
+              "type": "string"
+            },
+            {
+              "id": "timezone",
+              "name": "timezone",
+              "value": "={{$json.timezone}}",
+              "type": "string"
+            },
+            {
+              "id": "business-hours",
+              "name": "business_hours",
+              "value": "={{{\"start\": \"09:00\", \"end\": \"17:00\"}}}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "extract-timezone-data",
+      "name": "Extract Timezone Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 500]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "user-id",
+              "name": "user_id",
+              "value": "={{$json.user_id}}",
+              "type": "string"
+            },
+            {
+              "id": "callback-type",
+              "name": "callback_type",
+              "value": "={{$json.callback_type}}",
+              "type": "string"
+            },
+            {
+              "id": "preferred-time",
+              "name": "preferred_time",
+              "value": "={{$json.preferred_time}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "extract-callback-data",
+      "name": "Extract Callback Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 700]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:8001/memory/{{$json.user_id}}",
+        "options": {}
+      },
+      "id": "get-user-memory",
+      "name": "Get User Memory",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8001/memory/{{$json.user_id}}/timezone",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "timezone",
+              "value": "={{$json.timezone}}"
+            },
+            {
+              "name": "business_hours",
+              "value": "={{$json.business_hours}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "update-timezone",
+      "name": "Update Timezone",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 500]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8001/memory/{{$json.user_id}}/callback",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "callback_type",
+              "value": "={{$json.callback_type}}"
+            },
+            {
+              "name": "preferred_time",
+              "value": "={{$json.preferred_time}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "schedule-callback",
+      "name": "Schedule Callback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 700]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8080/rag/query",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{$json.transcript}}"
+            },
+            {
+              "name": "user_id",
+              "value": "={{$json.user_id}}"
+            },
+            {
+              "name": "context",
+              "value": "={{$json.memory?.conversation_history || []}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "rag-query",
+      "name": "RAG Query",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8080/rag/optimize-prompt",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "prompt_data",
+              "value": "={{{\"user_id\": $json.user_id, \"context\": $json.memory?.conversation_history || [], \"current_query\": $json.transcript, \"timezone\": $json.timezone}}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "optimize-prompt",
+      "name": "Optimize Prompt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 500]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assistant-response",
+              "name": "assistant_response",
+              "value": "={{{\"role\": \"assistant\", \"content\": $json.rag_response?.answer || 'No response available', \"timestamp\": $now, \"source\": \"RAG\"}}}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "prepare-vapi-response",
+      "name": "Prepare VAPI Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.vapi.ai/assistants/{{$json.assistant_id}}/function-calls",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "call_id",
+              "value": "={{$json.call_id}}"
+            },
+            {
+              "name": "function_name",
+              "value": "send_response"
+            },
+            {
+              "name": "arguments",
+              "value": "={{{\"message\": $json.assistant_response.content}}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-vapi-response",
+      "name": "Send VAPI Response",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8001/memory/{{$json.user_id}}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "conversation_history",
+              "value": "={{$json.memory?.conversation_history || [] + $json.assistant_response}}"
+            },
+            {
+              "name": "last_interaction",
+              "value": "={{$now}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "update-memory",
+      "name": "Update Memory",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8001/memory/{{$json.user_id}}/summary",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "call_summary",
+              "value": "={{{\"call_id\": $json.call_id, \"timestamp\": $now, \"timezone\": $json.timezone}}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "create-call-summary",
+      "name": "Create Call Summary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 900]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.gohighlevel.com/v1/contacts/",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "firstName",
+              "value": "={{$json.user_id}}"
+            },
+            {
+              "name": "phone",
+              "value": "={{$json.phone_number}}"
+            },
+            {
+              "name": "source",
+              "value": "Voice AI Call"
+            },
+            {
+              "name": "timezone",
+              "value": "={{$json.timezone}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "create-ghl-contact",
+      "name": "Create GHL Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 900]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "email-data",
+              "name": "email_data",
+              "value": "={{{\"to\": $json.user_email || $json.phone_number + '@sms.email', \"subject\": 'Voice AI Call Summary', \"body\": 'Thank you for your call. Summary: ' + $json.call_summary, \"timezone\": $json.timezone}}}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "prepare-email-data",
+      "name": "Prepare Email Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1120, 900]
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@voiceai.com",
+        "toEmail": "={{$json.email_data.to}}",
+        "subject": "={{$json.email_data.subject}}",
+        "text": "={{$json.email_data.body}}",
+        "options": {}
+      },
+      "id": "send-followup-email",
+      "name": "Send Follow-up Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [1340, 900]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "log-entry",
+              "name": "log_entry",
+              "value": "={{{\"timestamp\": $now, \"user_id\": $json.user_id, \"call_id\": $json.call_id, \"timezone\": $json.timezone, \"status\": 'processed'}}}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "log-processing",
+      "name": "Log Processing",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1560, 900]
+    }
+  ],
+  "connections": {
+    "Voice Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Voice Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Timezone Handler": {
+      "main": [
+        [
+          {
+            "node": "Extract Timezone Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Callback Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Callback Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Voice Data": {
+      "main": [
+        [
+          {
+            "node": "Get User Memory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Timezone Data": {
+      "main": [
+        [
+          {
+            "node": "Update Timezone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Callback Data": {
+      "main": [
+        [
+          {
+            "node": "Schedule Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User Memory": {
+      "main": [
+        [
+          {
+            "node": "RAG Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Timezone": {
+      "main": [
+        [
+          {
+            "node": "Optimize Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG Query": {
+      "main": [
+        [
+          {
+            "node": "Prepare VAPI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Optimize Prompt": {
+      "main": [
+        [
+          {
+            "node": "Prepare VAPI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare VAPI Response": {
+      "main": [
+        [
+          {
+            "node": "Send VAPI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send VAPI Response": {
+      "main": [
+        [
+          {
+            "node": "Update Memory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Memory": {
+      "main": [
+        [
+          {
+            "node": "Create Call Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Call Summary": {
+      "main": [
+        [
+          {
+            "node": "Create GHL Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create GHL Contact": {
+      "main": [
+        [
+          {
+            "node": "Prepare Email Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Email Data": {
+      "main": [
+        [
+          {
+            "node": "Send Follow-up Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Follow-up Email": {
+      "main": [
+        [
+          {
+            "node": "Log Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 3,
+  "updatedAt": "2025-01-09T09:00:00.000Z",
+  "versionId": "1"
+} 
