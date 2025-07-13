@@ -8,15 +8,16 @@ import logging
 from datetime import datetime, timedelta
 import redis
 from loguru import logger
+import pytz
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="Voice AI Memory System",
-    description="Conversation memory and user preferences management",
-    version="1.0.0"
+    title="Voice AI Professional Memory System",
+    description="Advanced conversation memory and user preferences management with timezone support",
+    version="2.0.0"
 )
 
 # Add CORS middleware
@@ -35,6 +36,7 @@ redis_client = redis.Redis.from_url(os.getenv("REDIS_URL", "redis://localhost:63
 MEMORY_TTL = int(os.getenv("MEMORY_TTL", 86400))  # 24 hours
 MAX_MEMORY_SIZE = int(os.getenv("MAX_MEMORY_SIZE", 1000))
 MEMORY_CLEANUP_INTERVAL = int(os.getenv("MEMORY_CLEANUP_INTERVAL", 3600))  # 1 hour
+DEFAULT_TIMEZONE = os.getenv("DEFAULT_TIMEZONE", "America/New_York")
 
 # Pydantic models
 class ConversationEntry(BaseModel):
@@ -42,6 +44,7 @@ class ConversationEntry(BaseModel):
     content: str
     timestamp: Optional[str] = None
     confidence: Optional[float] = None
+    sentiment: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
 
 class UserPreferences(BaseModel):
@@ -51,7 +54,24 @@ class UserPreferences(BaseModel):
     interruption_threshold: Optional[float] = 0.5
     max_conversation_length: Optional[int] = 50
     preferred_topics: Optional[List[str]] = None
+    timezone: Optional[str] = DEFAULT_TIMEZONE
+    email_preferences: Optional[Dict[str, Any]] = None
+    callback_preferences: Optional[Dict[str, Any]] = None
     custom_settings: Optional[Dict[str, Any]] = None
+
+class CallbackRequest(BaseModel):
+    user_id: str
+    callback_type: str  # "email", "sms", "call"
+    scheduled_time: str
+    timezone: str
+    message: Optional[str] = None
+    priority: Optional[str] = "normal"
+
+class EmailTemplate(BaseModel):
+    template_id: str
+    subject: str
+    body: str
+    variables: Optional[Dict[str, str]] = None
 
 class MemoryData(BaseModel):
     user_id: str
@@ -62,11 +82,15 @@ class MemoryData(BaseModel):
     total_interactions: int = 0
     created_at: str
     updated_at: str
+    callbacks: Optional[List[Dict[str, Any]]] = None
+    email_history: Optional[List[Dict[str, Any]]] = None
 
 class MemoryUpdateRequest(BaseModel):
     conversation_history: Optional[List[ConversationEntry]] = None
     preferences: Optional[UserPreferences] = None
     metadata: Optional[Dict[str, Any]] = None
+    callback_data: Optional[CallbackRequest] = None
+    email_data: Optional[Dict[str, Any]] = None
 
 class MemoryResponse(BaseModel):
     user_id: str
@@ -77,17 +101,72 @@ class MemoryResponse(BaseModel):
     total_interactions: int
     memory_size: int
     ttl_remaining: int
+    timezone_info: Optional[Dict[str, Any]] = None
 
 class HealthResponse(BaseModel):
     status: str
     timestamp: str
     redis_status: str
     memory_stats: Dict[str, Any]
+    timezone_support: bool
+
+# Timezone utility functions
+def get_user_timezone(user_id: str) -> str:
+    """Get user's timezone from memory or return default"""
+    try:
+        memory_data = redis_client.get(f"user_memory:{user_id}")
+        if memory_data:
+            memory = MemoryData(**json.loads(memory_data))
+            return memory.preferences.timezone or DEFAULT_TIMEZONE
+        return DEFAULT_TIMEZONE
+    except Exception:
+        return DEFAULT_TIMEZONE
+
+def convert_to_user_timezone(timestamp: str, user_id: str) -> str:
+    """Convert timestamp to user's timezone"""
+    try:
+        user_tz = pytz.timezone(get_user_timezone(user_id))
+        utc_time = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+        local_time = utc_time.astimezone(user_tz)
+        return local_time.isoformat()
+    except Exception as e:
+        logger.error(f"Timezone conversion error: {e}")
+        return timestamp
+
+def schedule_callback(callback_data: CallbackRequest) -> Dict[str, Any]:
+    """Schedule a callback for the user"""
+    try:
+        # Store callback in Redis with TTL
+        callback_key = f"user_callback:{callback_data.user_id}:{callback_data.scheduled_time}"
+        callback_info = {
+            "user_id": callback_data.user_id,
+            "callback_type": callback_data.callback_type,
+            "scheduled_time": callback_data.scheduled_time,
+            "timezone": callback_data.timezone,
+            "message": callback_data.message,
+            "priority": callback_data.priority,
+            "status": "scheduled"
+        }
+        
+        # Calculate TTL based on scheduled time
+        scheduled_dt = datetime.fromisoformat(callback_data.scheduled_time)
+        now = datetime.now(pytz.timezone(callback_data.timezone))
+        ttl_seconds = int((scheduled_dt - now).total_seconds())
+        
+        if ttl_seconds > 0:
+            redis_client.setex(callback_key, ttl_seconds, json.dumps(callback_info))
+            return {"status": "scheduled", "callback_id": callback_key, "ttl": ttl_seconds}
+        else:
+            return {"status": "failed", "error": "Scheduled time is in the past"}
+            
+    except Exception as e:
+        logger.error(f"Callback scheduling error: {e}")
+        return {"status": "failed", "error": str(e)}
 
 # Health check endpoint
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
-    """Health check endpoint"""
+    """Health check endpoint with timezone support"""
     try:
         # Test Redis connection
         redis_client.ping()
@@ -99,6 +178,7 @@ async def health_check():
     try:
         memory_stats = {
             "total_keys": len(redis_client.keys("user_memory:*")),
+            "callback_keys": len(redis_client.keys("user_callback:*")),
             "memory_usage": redis_client.info()["used_memory_human"],
             "ttl_default": MEMORY_TTL
         }
@@ -109,20 +189,21 @@ async def health_check():
         status="healthy" if redis_status == "healthy" else "unhealthy",
         timestamp=datetime.now().isoformat(),
         redis_status=redis_status,
-        memory_stats=memory_stats
+        memory_stats=memory_stats,
+        timezone_support=True
     )
 
 # Get user memory
 @app.get("/memory/{user_id}", response_model=MemoryResponse)
 async def get_user_memory(user_id: str):
-    """Get memory data for a specific user"""
+    """Get memory data for a specific user with timezone conversion"""
     try:
         # Get memory from Redis
         memory_data = redis_client.get(f"user_memory:{user_id}")
         
         if not memory_data:
             # Create new memory for user
-            default_preferences = UserPreferences()
+            default_preferences = UserPreferences(timezone=DEFAULT_TIMEZONE)
             memory = MemoryData(
                 user_id=user_id,
                 conversation_history=[],
@@ -134,9 +215,22 @@ async def get_user_memory(user_id: str):
         else:
             memory = MemoryData(**json.loads(memory_data))
         
+        # Convert timestamps to user timezone
+        user_tz = get_user_timezone(user_id)
+        for entry in memory.conversation_history:
+            if entry.timestamp:
+                entry.timestamp = convert_to_user_timezone(entry.timestamp, user_id)
+        
         # Calculate memory size and TTL
         memory_size = len(json.dumps(memory.dict()))
         ttl_remaining = redis_client.ttl(f"user_memory:{user_id}")
+        
+        # Get timezone info
+        timezone_info = {
+            "user_timezone": user_tz,
+            "current_time": datetime.now(pytz.timezone(user_tz)).isoformat(),
+            "utc_offset": datetime.now(pytz.timezone(user_tz)).utcoffset().total_seconds() / 3600
+        }
         
         return MemoryResponse(
             user_id=memory.user_id,
@@ -146,7 +240,8 @@ async def get_user_memory(user_id: str):
             session_count=memory.session_count,
             total_interactions=memory.total_interactions,
             memory_size=memory_size,
-            ttl_remaining=ttl_remaining
+            ttl_remaining=ttl_remaining,
+            timezone_info=timezone_info
         )
         
     except Exception as e:
@@ -156,7 +251,7 @@ async def get_user_memory(user_id: str):
 # Update user memory
 @app.post("/memory/{user_id}")
 async def update_user_memory(user_id: str, request: MemoryUpdateRequest):
-    """Update memory data for a specific user"""
+    """Update memory data for a specific user with enhanced features"""
     try:
         # Get existing memory or create new
         memory_data = redis_client.get(f"user_memory:{user_id}")
@@ -168,7 +263,7 @@ async def update_user_memory(user_id: str, request: MemoryUpdateRequest):
             memory = MemoryData(
                 user_id=user_id,
                 conversation_history=[],
-                preferences=UserPreferences(),
+                preferences=UserPreferences(timezone=DEFAULT_TIMEZONE),
                 last_interaction=datetime.now().isoformat(),
                 created_at=datetime.now().isoformat(),
                 updated_at=datetime.now().isoformat()
@@ -176,7 +271,7 @@ async def update_user_memory(user_id: str, request: MemoryUpdateRequest):
         
         # Update conversation history
         if request.conversation_history:
-            # Add new entries
+            # Add new entries with timezone conversion
             for entry in request.conversation_history:
                 if not entry.timestamp:
                     entry.timestamp = datetime.now().isoformat()
@@ -194,6 +289,22 @@ async def update_user_memory(user_id: str, request: MemoryUpdateRequest):
             new_prefs = request.preferences.dict(exclude_unset=True)
             current_prefs.update(new_prefs)
             memory.preferences = UserPreferences(**current_prefs)
+        
+        # Handle callback data
+        if request.callback_data:
+            callback_result = schedule_callback(request.callback_data)
+            if memory.callbacks is None:
+                memory.callbacks = []
+            memory.callbacks.append(callback_result)
+        
+        # Handle email data
+        if request.email_data:
+            if memory.email_history is None:
+                memory.email_history = []
+            memory.email_history.append({
+                **request.email_data,
+                "timestamp": datetime.now().isoformat()
+            })
         
         # Update metadata
         if request.metadata:
@@ -221,12 +332,69 @@ async def update_user_memory(user_id: str, request: MemoryUpdateRequest):
             "user_id": user_id,
             "memory_size": len(json.dumps(memory.dict())),
             "conversation_length": len(memory.conversation_history),
-            "total_interactions": memory.total_interactions
+            "total_interactions": memory.total_interactions,
+            "timezone": memory.preferences.timezone,
+            "callback_scheduled": bool(request.callback_data),
+            "email_sent": bool(request.email_data)
         }
         
     except Exception as e:
         logger.error(f"Error updating user memory: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to update user memory: {str(e)}")
+
+# Schedule callback endpoint
+@app.post("/memory/{user_id}/callback")
+async def schedule_user_callback(user_id: str, callback_data: CallbackRequest):
+    """Schedule a callback for a user"""
+    try:
+        # Ensure user_id matches
+        callback_data.user_id = user_id
+        
+        # Schedule the callback
+        result = schedule_callback(callback_data)
+        
+        # Update user memory with callback info
+        memory_data = redis_client.get(f"user_memory:{user_id}")
+        if memory_data:
+            memory = MemoryData(**json.loads(memory_data))
+            if memory.callbacks is None:
+                memory.callbacks = []
+            memory.callbacks.append(result)
+            
+            redis_client.setex(
+                f"user_memory:{user_id}",
+                MEMORY_TTL,
+                json.dumps(memory.dict())
+            )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error scheduling callback: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to schedule callback: {str(e)}")
+
+# Get user callbacks
+@app.get("/memory/{user_id}/callbacks")
+async def get_user_callbacks(user_id: str):
+    """Get all callbacks for a user"""
+    try:
+        callback_keys = redis_client.keys(f"user_callback:{user_id}:*")
+        callbacks = []
+        
+        for key in callback_keys:
+            callback_data = redis_client.get(key)
+            if callback_data:
+                callbacks.append(json.loads(callback_data))
+        
+        return {
+            "user_id": user_id,
+            "callbacks": callbacks,
+            "total": len(callbacks)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting user callbacks: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get user callbacks: {str(e)}")
 
 # Clear user memory
 @app.delete("/memory/{user_id}")
@@ -237,9 +405,14 @@ async def clear_user_memory(user_id: str):
         redis_client.delete(f"user_memory:{user_id}")
         redis_client.delete(f"user_metadata:{user_id}")
         
+        # Delete callbacks
+        callback_keys = redis_client.keys(f"user_callback:{user_id}:*")
+        for key in callback_keys:
+            redis_client.delete(key)
+        
         return {
             "status": "success",
-            "message": f"Memory cleared for user {user_id}"
+            "message": f"Memory and callbacks cleared for user {user_id}"
         }
         
     except Exception as e:
@@ -249,7 +422,7 @@ async def clear_user_memory(user_id: str):
 # Get conversation summary
 @app.get("/memory/{user_id}/summary")
 async def get_conversation_summary(user_id: str):
-    """Get a summary of the user's conversation history"""
+    """Get a summary of the user's conversation history with timezone conversion"""
     try:
         memory_data = redis_client.get(f"user_memory:{user_id}")
         
@@ -257,6 +430,12 @@ async def get_conversation_summary(user_id: str):
             raise HTTPException(status_code=404, detail="User memory not found")
         
         memory = MemoryData(**json.loads(memory_data))
+        
+        # Convert timestamps to user timezone
+        user_tz = get_user_timezone(user_id)
+        for entry in memory.conversation_history:
+            if entry.timestamp:
+                entry.timestamp = convert_to_user_timezone(entry.timestamp, user_id)
         
         # Create summary
         summary = {
@@ -268,7 +447,10 @@ async def get_conversation_summary(user_id: str):
             "total_interactions": memory.total_interactions,
             "last_interaction": memory.last_interaction,
             "preferences": memory.preferences.dict(),
-            "recent_messages": memory.conversation_history[-10:] if memory.conversation_history else []
+            "timezone": user_tz,
+            "recent_messages": memory.conversation_history[-10:] if memory.conversation_history else [],
+            "callbacks": memory.callbacks or [],
+            "email_history": memory.email_history or []
         }
         
         return summary
@@ -307,7 +489,7 @@ async def get_user_preferences(user_id: str):
         
         if not memory_data:
             # Return default preferences
-            return UserPreferences()
+            return UserPreferences(timezone=DEFAULT_TIMEZONE)
         
         memory = MemoryData(**json.loads(memory_data))
         return memory.preferences
@@ -352,7 +534,8 @@ async def update_user_preferences(user_id: str, preferences: UserPreferences):
         
         return {
             "status": "success",
-            "message": f"Preferences updated for user {user_id}"
+            "message": f"Preferences updated for user {user_id}",
+            "timezone": preferences.timezone
         }
         
     except Exception as e:
@@ -362,7 +545,7 @@ async def update_user_preferences(user_id: str, preferences: UserPreferences):
 # Memory cleanup endpoint
 @app.post("/memory/cleanup")
 async def cleanup_old_memories():
-    """Clean up old memory entries"""
+    """Clean up old memory entries and expired callbacks"""
     try:
         # Get all memory keys
         memory_keys = redis_client.keys("user_memory:*")
@@ -377,9 +560,19 @@ async def cleanup_old_memories():
             elif ttl == -2:  # Key doesn't exist
                 deleted_count += 1
         
+        # Clean up expired callbacks
+        callback_keys = redis_client.keys("user_callback:*")
+        expired_callbacks = 0
+        
+        for key in callback_keys:
+            ttl = redis_client.ttl(key)
+            if ttl == -2:  # Key doesn't exist
+                expired_callbacks += 1
+                redis_client.delete(key)
+        
         return {
             "status": "success",
-            "message": f"Memory cleanup completed. {deleted_count} expired entries removed."
+            "message": f"Memory cleanup completed. {deleted_count} expired entries and {expired_callbacks} expired callbacks removed."
         }
         
     except Exception as e:
@@ -389,19 +582,23 @@ async def cleanup_old_memories():
 # Get memory statistics
 @app.get("/memory/stats")
 async def get_memory_stats():
-    """Get memory system statistics"""
+    """Get memory system statistics with callback info"""
     try:
         memory_keys = redis_client.keys("user_memory:*")
         metadata_keys = redis_client.keys("user_metadata:*")
         summary_keys = redis_client.keys("user_summary:*")
+        callback_keys = redis_client.keys("user_callback:*")
         
         stats = {
             "total_users": len(memory_keys),
             "users_with_metadata": len(metadata_keys),
             "users_with_summaries": len(summary_keys),
+            "active_callbacks": len(callback_keys),
             "memory_usage": redis_client.info()["used_memory_human"],
             "ttl_default": MEMORY_TTL,
-            "max_memory_size": MAX_MEMORY_SIZE
+            "max_memory_size": MAX_MEMORY_SIZE,
+            "timezone_support": True,
+            "default_timezone": DEFAULT_TIMEZONE
         }
         
         return stats
